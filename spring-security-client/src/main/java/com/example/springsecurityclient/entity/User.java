@@ -1,7 +1,9 @@
 package com.example.springsecurityclient.entity;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
+@Data
 @Entity
 public class User {
     @Id
