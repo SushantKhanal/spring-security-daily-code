@@ -9,7 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-////@EnableWebSecurity annotation implicitly includes the @Configuration annotation
+//@EnableWebSecurity annotation implicitly includes the @Configuration annotation
 //@Configuration can be used in any Spring application for various purposes. In contrast,
 //@EnableWebSecurity is used only in the context of a web application where Spring Security is implemented.
 @EnableWebSecurity
@@ -23,7 +23,6 @@ public class WebSecurityConfig {
     public PasswordEncoder getPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(AbstractHttpConfigurer::disable)
