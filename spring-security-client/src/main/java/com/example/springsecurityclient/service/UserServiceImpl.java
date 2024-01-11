@@ -1,7 +1,9 @@
 package com.example.springsecurityclient.service;
+import com.example.springsecurityclient.entity.PasswordResetToken;
 import com.example.springsecurityclient.entity.User;
 import com.example.springsecurityclient.entity.VerificationToken;
 import com.example.springsecurityclient.model.UserModel;
+import com.example.springsecurityclient.repository.PasswordResetTokenRepository;
 import com.example.springsecurityclient.repository.UserRepository;
 import com.example.springsecurityclient.repository.VerificationTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +20,8 @@ public class UserServiceImpl implements UserService {
     private VerificationTokenRepository verificationTokenRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
     @Override
     public User registerUser(UserModel userModel) {
         User user = new User();
@@ -64,6 +68,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void createPasswordResetTokenForUser(User user, String token) {
-
+        PasswordResetToken passwordResetToken = new PasswordResetToken(user, token);
+        passwordResetTokenRepository.save(passwordResetToken);
     }
 }

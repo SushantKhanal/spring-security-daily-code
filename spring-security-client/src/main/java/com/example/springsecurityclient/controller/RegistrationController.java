@@ -54,12 +54,28 @@ public class RegistrationController {
     }
 
     @PostMapping("/resetPassword")
-    public String resetPassword(@RequestBody PasswordModel passwordModel) {
+    public String resetPassword(@RequestBody PasswordModel passwordModel,
+                                HttpServletRequest request) {
         User user = userService.findUserByEmail(passwordModel.getEmail());
+        String url = "";
         if(user != null) {
             String token = UUID.randomUUID().toString();
             userService.createPasswordResetTokenForUser(user, token);
+            url = sendPasswordResetTokenMail(user, applicationUrl(request), token);
         }
+        return url;
+    }
+
+    @PostMapping("/savePassword")
+    public String savePassword(@RequestParam("token") String token,
+                               @RequestBody PasswordModel passwordModel) {
+
+    }
+
+    private String sendPasswordResetTokenMail(User user, String applicationUrl, String token) {
+        String url = applicationUrl + "/savePassword?token=" + token;
+        //Send Verification Email
+        log.info("click the link to rese your password:  {}", url);
     }
 
     private void resendVerificationTokenMail(User user, String applicationUrl, VerificationToken verificationToken) {
