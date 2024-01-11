@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -52,7 +53,6 @@ public class RegistrationController {
     public String helloUser() {
         return "Hello New User";
     }
-
     @PostMapping("/resetPassword")
     public String resetPassword(@RequestBody PasswordModel passwordModel,
                                 HttpServletRequest request) {
@@ -69,13 +69,24 @@ public class RegistrationController {
     @PostMapping("/savePassword")
     public String savePassword(@RequestParam("token") String token,
                                @RequestBody PasswordModel passwordModel) {
-
+        String result = userService.validatePasswordResetToken(token);
+        if(!result.equalsIgnoreCase("valid")){
+            return "Invalid Token";
+        }
+        Optional<User> user = userService.findUserByPasswordResetToken(token);
+        if(user.isPresent()) {
+            userService.changePassword(user.get(), passwordModel.getNewPassword());
+            return "Password reset successfully";
+        } else {
+            return "Invalid Token";
+        }
     }
 
     private String sendPasswordResetTokenMail(User user, String applicationUrl, String token) {
         String url = applicationUrl + "/savePassword?token=" + token;
         //Send Verification Email
         log.info("click the link to rese your password:  {}", url);
+        return url;
     }
 
     private void resendVerificationTokenMail(User user, String applicationUrl, VerificationToken verificationToken) {
