@@ -1,44 +1,71 @@
 package com.example.springsecurityclient.controller;
 
 import com.example.springsecurityclient.entity.User;
+import com.example.springsecurityclient.entity.VerificationToken;
 import com.example.springsecurityclient.event.RegistrationCompleteEvent;
+import com.example.springsecurityclient.model.PasswordModel;
 import com.example.springsecurityclient.model.UserModel;
 import com.example.springsecurityclient.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.RequestEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
+@Slf4j
 public class RegistrationController {
     @Autowired
     private UserService userService;
     @Autowired
     private ApplicationEventPublisher publisher;
     @PostMapping("/register")
-    public String registerNewUser(@RequestBody UserModel userModel, final HttpServletRequest request) {
+    public ResponseEntity<String> registerNewUser(@RequestBody UserModel userModel, final HttpServletRequest request) {
         User user = userService.registerUser(userModel);
         publisher.publishEvent(new RegistrationCompleteEvent(
                 user,
                 applicationUrl(request)
         ));
-        return "Success";
+        return ResponseEntity.status(HttpStatus.CREATED).body("New User Created.");
     }
-
     @GetMapping("/verifyRegistration")
     public ResponseEntity<String> verifyRegistration(@RequestParam("token") String token) {
         String result = userService.validateVerificationToken(token);
         if(result.equalsIgnoreCase("valid")) {
             return ResponseEntity.ok("User Verified Successfully");
         }
-        return ResponseEntity.status(400).body("Bad Request");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Bad Request");
     }
-
+    @GetMapping("/resendVerifyToken")
+    public ResponseEntity<String> resendVerificationToken(@RequestParam("token") String oldToken,
+                                                          HttpServletRequest request) {
+        VerificationToken verificationToken = userService.generateNewVerificationToken(oldToken);
+        User user = verificationToken.getUser();
+        resendVerificationTokenMail(user, applicationUrl(request), verificationToken);
+        return ResponseEntity.status(HttpStatus.OK).body("Verification Link Sent");
+    }
     @GetMapping("/hello")
     public String helloUser() {
         return "Hello New User";
+    }
+
+    @PostMapping("/resetPassword")
+    public String resetPassword(@RequestBody PasswordModel passwordModel) {
+        User user = userService.findUserByEmail(passwordModel.getEmail());
+        if(user != null) {
+            String token = UUID.randomUUID().toString();
+            userService.createPasswordResetTokenForUser(user, token);
+        }
+    }
+
+    private void resendVerificationTokenMail(User user, String applicationUrl, VerificationToken verificationToken) {
+        String url = applicationUrl + "/verifyRegistration?token=" + verificationToken.getToken();
+        //Send Verification Email
+        log.info("click the link to verify your account:  {}", url);
     }
 
     private String applicationUrl(HttpServletRequest request) {

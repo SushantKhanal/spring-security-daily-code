@@ -14,10 +14,8 @@ import java.util.UUID;
 @Slf4j
 public class RegistrationCompleteEventListener implements
         ApplicationListener<RegistrationCompleteEvent> {
-
     @Autowired
     private UserService userService;
-
     @Override
     public void onApplicationEvent(RegistrationCompleteEvent event) {
         //Create the verification token for the User with link
@@ -28,7 +26,7 @@ public class RegistrationCompleteEventListener implements
         //to verify the user
         String url = event.getApplicationUrl() + "/verifyRegistration?token=" + token;
         //Send Verification Email
-        log.info("click the link to verify your account", url);
+        log.info("click the link to verify your account:  {}", url);
         //this part is not done here
     }
 }
