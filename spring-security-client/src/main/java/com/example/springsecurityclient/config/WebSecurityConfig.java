@@ -21,7 +21,8 @@ public class WebSecurityConfig {
             "/verifyRegistration*",
             "/resendVerifyToken*",
             "/resetPassword",
-                    "/savePassword"
+            "/savePassword",
+            "/changePassword"
     };
     @Bean
     public PasswordEncoder getPasswordEncoder() {

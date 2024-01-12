@@ -1,5 +1,4 @@
 package com.example.springsecurityclient.controller;
-
 import com.example.springsecurityclient.entity.User;
 import com.example.springsecurityclient.entity.VerificationToken;
 import com.example.springsecurityclient.event.RegistrationCompleteEvent;
@@ -49,6 +48,7 @@ public class RegistrationController {
         resendVerificationTokenMail(user, applicationUrl(request), verificationToken);
         return ResponseEntity.status(HttpStatus.OK).body("Verification Link Sent");
     }
+
     @GetMapping("/hello")
     public String helloUser() {
         return "Hello New User";
@@ -66,7 +66,7 @@ public class RegistrationController {
         return url;
     }
 
-    @PostMapping("/savePassword")
+    @PostMapping("/saveNewPassword")
     public String savePassword(@RequestParam("token") String token,
                                @RequestBody PasswordModel passwordModel) {
         String result = userService.validatePasswordResetToken(token);
@@ -82,10 +82,21 @@ public class RegistrationController {
         }
     }
 
+    @PostMapping("/changePassword")
+    public ResponseEntity<String> changePassword(@RequestBody PasswordModel passwordModel) {
+        User user = userService.findUserByEmail(passwordModel.getEmail());
+        if(!userService.checkIfValidOldPassword(user, passwordModel.getOldPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Old Password");
+        }
+        //save new password
+        userService.changePassword(user, passwordModel.getNewPassword());
+        return ResponseEntity.status(HttpStatus.OK).body("Password changed successfully");
+    }
+
     private String sendPasswordResetTokenMail(User user, String applicationUrl, String token) {
-        String url = applicationUrl + "/savePassword?token=" + token;
+        String url = applicationUrl + "/saveNewPassword?token=" + token;
         //Send Verification Email
-        log.info("click the link to rese your password:  {}", url);
+        log.info("click the link to reset your password:  {}", url);
         return url;
     }
 
